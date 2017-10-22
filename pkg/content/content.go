@@ -215,12 +215,13 @@ func (f fetcherTask) doTaskHelper(ctx context.Context) (string, error) {
 //
 // FinishTask MUST be called WHETHER OR NOT this succeeds.
 func (f *Fetcher) SubmitTask(ctx context.Context, req TaskRequest) (string, error) {
+	logger.Printf("submitting task %+v", req)
 	select {
 	case f.reqQueue <- internalTaskRequest{req: req, ctx: ctx}:
 		resp := <-f.respQueue
 		return resp.path, resp.err
 	case <-ctx.Done():
-		return "", fmt.Errorf("context done before task submitted")
+		return "", fmt.Errorf("context done before task %+v submitted", req)
 	}
 }
 
