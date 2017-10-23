@@ -83,12 +83,16 @@ func (s *State) handleError(w http.ResponseWriter, r *http.Request, status int) 
 }
 
 func (s *State) handleRSS(w http.ResponseWriter, r *http.Request) {
+	logger.Printf("handleRSS request headers: %+v", r.Header)
 	qPath := strings.TrimPrefix(r.URL.Path, rssPathSlash)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go handleEvents(ctx, cancel, w.(http.CloseNotifier), "handleRSS")
 
 	reqHost := r.Host
+	if fwdHost := r.Header.Get("x-forwarded-host"); fwdHost != "" {
+		reqHost = strings.Split(fwdHost, ",")[0]
+	}
 	logger.Printf("handleRSS request from host %s", reqHost)
 	logger.Printf("handleRSS request %+v", r)
 	if strings.HasPrefix(qPath, ytPrefix) {
