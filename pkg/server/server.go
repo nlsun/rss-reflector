@@ -83,7 +83,7 @@ func (s *State) handleError(w http.ResponseWriter, r *http.Request, status int) 
 }
 
 func (s *State) handleRSS(w http.ResponseWriter, r *http.Request) {
-	logger.Printf("handleRSS request headers: %+v", r.Header)
+	logger.Printf("handleRSS request %+v", r)
 	qPath := strings.TrimPrefix(r.URL.Path, rssPathSlash)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -94,7 +94,6 @@ func (s *State) handleRSS(w http.ResponseWriter, r *http.Request) {
 		reqHost = strings.Split(fwdHost, ",")[0]
 	}
 	logger.Printf("handleRSS request from host %s", reqHost)
-	logger.Printf("handleRSS request %+v", r)
 	if strings.HasPrefix(qPath, ytPrefix) {
 		reqPrePath := path.Join(contentPath, ytPrefix)
 		rssStr, err := rss.GenYoutubeRSS(ctx, strings.TrimPrefix(qPath, ytPrefix), r.URL.RawQuery, reqHost, reqPrePath)

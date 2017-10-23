@@ -77,7 +77,9 @@ func GenYoutubeRSS(ctx context.Context, qPath, qRawQuery, dstHost, prePath strin
 			return "", err
 		}
 		o := &feedO.Item{
-			Title:       item.Title,
+			Title: item.Title,
+			// This Link is not used in the final XML, it's just used to
+			// pass information to the next parsing stage.
 			Link:        &feedO.Link{Href: ytLink},
 			Description: item.Description,
 			Author:      &feedO.Author{Name: item.Author.Name, Email: item.Author.Email},
@@ -93,7 +95,24 @@ func GenYoutubeRSS(ctx context.Context, qPath, qRawQuery, dstHost, prePath strin
 		outFeed.Items = append(outFeed.Items, o)
 	}
 
-	return outFeed.ToRss()
+	// The reason this dance is necessary is because gorilla/feeds has a bug
+	// where it does not internally convert the Link to an Enclosure.
+	rssThing := &feedO.Rss{outFeed}
+	finalRssFeed := rssThing.RssFeed()
+	for i := range finalRssFeed.Items {
+		finalRssFeed.Items[i].Enclosure = &feedO.RssEnclosure{
+			// A possible issue is that we leave the `Length` and `Type` blank.
+			// We do this because we don't actually know anything about the
+			// contents of the link.
+			// It seems, however, that rss feed readers are generally ok with
+			// this.
+			Url: finalRssFeed.Items[i].Link,
+		}
+		// Clear out the unused Link
+		finalRssFeed.Items[i].Link = ""
+	}
+
+	return feedO.ToXML(finalRssFeed)
 }
 
 func parseYoutubeLink(link, host, prePath string) (string, error) {
