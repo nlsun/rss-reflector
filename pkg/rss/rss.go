@@ -59,10 +59,10 @@ func GenYoutubeRSS(ctx context.Context, qPath, qRawQuery, dstHost, prePath strin
 	}
 
 	outFeed := &feedO.Feed{
-		Title:       inFeed.Title,
+		Title:       revStr(inFeed.Title),
 		Link:        &feedO.Link{Href: inFeed.Link},
-		Description: inFeed.Description,
-		Author:      &feedO.Author{Name: inFeed.Author.Name, Email: inFeed.Author.Email},
+		Description: revStr(inFeed.Description),
+		Author:      &feedO.Author{Name: revStr(inFeed.Author.Name), Email: revStr(inFeed.Author.Email)},
 	}
 	if inFeed.UpdatedParsed != nil {
 		outFeed.Updated = *inFeed.UpdatedParsed
@@ -77,12 +77,12 @@ func GenYoutubeRSS(ctx context.Context, qPath, qRawQuery, dstHost, prePath strin
 			return "", err
 		}
 		o := &feedO.Item{
-			Title: item.Title,
+			Title: revStr(item.Title),
 			// This Link is not used in the final XML, it's just used to
 			// pass information to the next parsing stage.
 			Link:        &feedO.Link{Href: ytLink},
-			Description: item.Description,
-			Author:      &feedO.Author{Name: item.Author.Name, Email: item.Author.Email},
+			Description: revStr(item.Description),
+			Author:      &feedO.Author{Name: revStr(item.Author.Name), Email: revStr(item.Author.Email)},
 			Id:          item.GUID,
 		}
 		if item.UpdatedParsed != nil {
@@ -124,4 +124,12 @@ func parseYoutubeLink(link, host, prePath string) (string, error) {
 	u.Host = host
 	u.Path = path.Join(prePath, u.Path)
 	return u.String(), nil
+}
+
+func revStr(s string) string {
+	chars := []rune(s)
+	for i, j := 0, len(chars)-1; i < j; i, j = i+1, j-1 {
+		chars[i], chars[j] = chars[j], chars[i]
+	}
+	return string(chars)
 }
