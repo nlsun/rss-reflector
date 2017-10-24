@@ -130,10 +130,22 @@ func parseYoutubeLink(link, host, prePath string) (string, error) {
 	return u.String(), nil
 }
 
-func revStr(s string) string {
-	chars := []rune(s)
-	for i, j := 0, len(chars)-1; i < j; i, j = i+1, j-1 {
-		chars[i], chars[j] = chars[j], chars[i]
+func revStr(input string) string {
+	// https://stackoverflow.com/questions/1752414/how-to-reverse-a-string-in-go/1754209#1754209
+	// https://groups.google.com/forum/#!topic/golang-nuts/oPuBaYJ17t4
+
+	// Get Unicode code points.
+	n := 0
+	rune := make([]rune, len(input))
+	for _, r := range input {
+		rune[n] = r
+		n++
 	}
-	return string(chars)
+	rune = rune[0:n]
+	// Reverse
+	for i := 0; i < n/2; i++ {
+		rune[i], rune[n-1-i] = rune[n-1-i], rune[i]
+	}
+	// Convert back to UTF-8.
+	return string(rune)
 }
