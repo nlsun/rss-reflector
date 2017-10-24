@@ -101,12 +101,16 @@ func GenYoutubeRSS(ctx context.Context, qPath, qRawQuery, dstHost, prePath strin
 	finalRssFeed := rssThing.RssFeed()
 	for i := range finalRssFeed.Items {
 		finalRssFeed.Items[i].Enclosure = &feedO.RssEnclosure{
-			// A possible issue is that we leave the `Length` and `Type` blank.
+			// A possible issue is that we leave the `Length` blank.
 			// We do this because we don't actually know anything about the
 			// contents of the link.
 			// It seems, however, that rss feed readers are generally ok with
 			// this.
 			Url: finalRssFeed.Items[i].Link,
+			// XXX Type is current hardcoded, we should be able to configure
+			// these through special query parameters in the url, since
+			// we construct these urls.
+			Type: "audio/mpeg",
 		}
 		// Clear out the unused Link
 		finalRssFeed.Items[i].Link = ""
